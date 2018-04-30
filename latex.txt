@@ -1,0 +1,337 @@
+\documentclass[11pt,a4paper,oldfontcommands]{memoir}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage[dvips]{graphicx, caption}
+\usepackage{wrapfig}
+\usepackage[super]{nth}
+\usepackage{xcolor}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{subcaption}
+\usepackage{multicol}
+\usepackage{xcolor}
+\usepackage[
+breaklinks=true,colorlinks=true,
+%linkcolor=blue,urlcolor=blue,citecolor=blue,% PDF VIEW
+linkcolor=black,urlcolor=black,citecolor=black,% PRINT
+bookmarks=true,bookmarksopenlevel=2]{hyperref}
+
+\usepackage{geometry}
+% * <somanath.tripathy@gmail.com> 2018-03-11T09:18:17.948Z:
+%
+% > }
+%
+% ^.
+% PDF VIEW
+% \geometry{total={210mm,297mm},
+% left=25mm,right=25mm,%
+% bindingoffset=0mm, top=25mm,bottom=25mm}
+% PRINT
+\geometry{total={210mm,297mm},
+left=20mm,right=20mm,
+bindingoffset=10mm, top=25mm,bottom=25mm}
+\graphicspath{ {images/} }
+
+\OnehalfSpacing
+%\linespread{1.3}
+
+%%% CHAPTER'S STYLE
+%\chapterstyle{bianchi}
+%\chapterstyle{ger}
+%\chapterstyle{madsen}
+%\chapterstyle{ell}
+%%% STYLE OF SECTIONS, SUBSECTIONS, AND SUBSUBSECTIONS
+\setsecheadstyle{\Large\bfseries\sffamily\raggedright}
+\setsubsecheadstyle{\large\bfseries\sffamily\raggedright}
+\setsubsubsecheadstyle{\bfseries\sffamily\raggedright}
+
+
+%%% STYLE OF PAGES NUMBERING
+%\pagestyle{companion}\nouppercaseheads 
+%\pagestyle{headings}
+%\pagestyle{Ruled}
+\pagestyle{plain}
+\makepagestyle{plain}
+\makeevenfoot{plain}{\thepage}{}{}
+\makeoddfoot{plain}{}{}{\thepage}
+\makeevenhead{plain}{}{}{}
+\makeoddhead{plain}{}{}{}
+
+
+%\maxsecnumdepth{subsection} % chapters, sections, and subsections are numbered
+\maxtocdepth{subsection} % chapters, sections, and subsections are in the Table of Contents
+
+
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+
+\begin{document}
+
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+%   TITLEPAGE
+%
+%   due to variety of titlepage schemes it is probably better to make titlepage manually
+%
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+\thispagestyle{empty}
+
+{%%%
+\sffamily
+\centering
+\Large
+
+~\vspace{\fill}
+\centering{
+{\huge 
+Automatic colorisation of photos (grayscale) using Deep Learning Techniques
+}
+
+\vspace{2.5cm}
+
+{\LARGE
+Raghav Jindal  \\ %avoid abbreviations
+1501CS36 \\
+Email: raghav.cs15@iitp.ac.in
+\\
+%{\LARGE
+%Author 2 name} \\ %avoid abbreviations
+%{Roll No.\\
+%Email 
+}
+
+\vspace{3.5cm}
+
+"CS399: Seminar Report"\\
+Spring 2018
+
+\vspace{3.5cm}
+Department of Computer Sc. and Eng.\\
+Indian Institute of Technology Patna
+
+\vspace{\fill}
+
+%
+
+%%%
+}%%%
+}
+
+%\tableofcontents*
+
+\clearpage
+
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+\begin{abstract}
+Given a gray scale photograph as input, this paper attacks
+the problem of hallucinating a plausible color version of the photograph. Here I discuss 2 papers which developed models for colorization of black and white photos: 1) First using a model involving concepts of CNN and hyper-columns and 2) Using conditional adversarial networks. Both the techniques are fully automatic approach that produces vibrant and realistic colorization. For evaluation a “colorization Turing test,” was used in the papers.
+
+
+	\vspace{1.5cm}
+	\textbf{Keywords}: Colorization, Neural networks, Convolutional Neural Networks(CNN), Conditional Adversarial Networks
+\end{abstract}
+
+\section{Introduction}
+
+%\section{First section}
+Automatic colorization is an area of research that possesses great potentials in applications: from black and white photos reconstruction, augmentation of grey scale drawings, to re-colorization of images. Traditionally, people used photo-shop achieve these goals. However, it involved a lot of manual labour and time. This problem can be automated easily using some novel Deep learning techniques, as the perfect training data is easy to get: any colored image can be desaturated and be used as an example. 
+
+In this report, two models are discussed: 1) Using a ConvNet + Hypercolumns architecture and 2) using a Conditional-GAN. Both the models take gray scale images and produce (RGB) images. It was found that the GAN architecture can generate better results. 
+The first model was developed by Ryan Dahl \cite{one}. It was one of the first works that was done in this topic. 
+
+The second model was developed by Phillip Isola and Jun-Yan Zhu et. al in their trademark paper "Image-to-Image Translation with Conditional Adversarial Networks"\cite{two}.  We define image-to-image translation as the problem of translating one possible representation of a scene into another. Traditionally, every different image translation problem has been tackled with separate, special-purpose machinery[\cite{three}, \cite{four}, \cite{five}]. The paper by \cite{two} had a salient feature: It showed that the same Conditional GAN architecture could be used for any image translation problem.
+
+ 
+
+\section{Method}
+
+\subsection{Method 1: Using ConvNet and HyperColumns}
+
+In the model proposed by \cite{one}, the input image is supposed to be of 224 x 224 gray scale image. 3 copies of the image are concatenated together to get a 224 x 224 x 3 sized "matrix". These matrix is passed through first few layers of a pre trained VGG-16 model. At each step, the activation map is bilinearly upscaled to make its size equal to that of the input image (Fig 0.1). Thereafter, the hypercolumns for every input pixel is obtained [Fig 0.1].\textbf{ Hypercolumns} are defined for every pixel as the vector of all activations above that pixel. 
+
+\pagebreak
+
+\begin{figure}
+\centering
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[width=0.9\linewidth]{image1}
+  \captionof{figure}{\small Obtaining the hypercolumns for every pixel of the input gray scale image}
+  \label{fig:test1}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image3}
+  \captionof{figure}{\small Getting UV channels from the hypercolumns}
+  \label{fig:test2}
+\end{minipage}
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{image2}
+  \captionof{figure}{Getting final RGB image}
+  \label{fig:test2}
+\end{minipage}
+\end{figure}
+
+% \begin{figure}[!htb]
+%     \begin{subfigure}{0.5\linewidth}
+%         % \centering
+%         \includegraphics[width=0.5\linewidth]{image1}
+%         \caption{}
+%     \end{subfigure}
+    
+%     \begin{subfigure}{0.5\linewidth}
+%         % \centering
+%         \includegraphics[width=0.5\linewidth]{image3}
+%         \caption{}
+%     \end{subfigure}
+    
+%     % \begin{subfigure}{\linewidth}
+%     %     \centering
+%     %     \includegraphics[width=0.5\linewidth]{image2}
+%     %     \caption{}
+%     % \end{subfigure}
+% \end{figure}
+
+% \begin{wrapfigure}{r}{6cm}
+% %    \captionsetup{singlelinecheck = false, justification=raggedright}
+%     \caption{\tiny Obtaining the hypercolumns for every pixel of the input gray scale image}
+%     \includegraphics[width=5cm, height=6cm]{image1}
+    
+% \end{wrapfigure}
+
+% \begin{wrapfigure}{r}{6cm}
+% %    \captionsetup{singlelinecheck = false, justification=raggedright}
+%     \caption{\tiny Converting the Hypercolumns to UV\newline channels}
+%     \centering
+%     \includegraphics[width=7cm, height=3cm]{image3}
+    
+% \end{wrapfigure}
+
+% \begin{wrapfigure}{r}{6cm}
+% %    \captionsetup{singlelinecheck = false, justification=raggedright}
+%     \caption{\tiny Getting the final RGB image}
+%     \includegraphics[width=6cm, height=3cm]{image2}
+    
+% \end{wrapfigure}
+
+Once the Hypercolums are obtained, a triplet of 3 x 3 convolutions are applied with varying number of filters (see Fig 0.2) to obtain the UV channels. YUV format of the image was used instead of RGB, because the "Y" in YUV stands for intensity and the intensity in both the input and output are same. So, we only need to find 2 values i.e U and V instead of 3 values in case of RGB. 
+
+Once we get the UV channels, we concatenate the Y channel from the input image to get the YUV image (fig 0.3). Next, a simple matrix operation is applied to convert the YUV to RGB.\newline
+\textbf{Objective function: }The loss for $i^{th}$ training example is defined as:\newline
+
+\[L_{i}=\frac{1}{2}\sum_{p=1}^{n}|F(x_{i};\theta)^p -y^p|^{2} \] 
+So the overall objective function is represented as:
+\[L_{ConvNet} = \sum_{i=1}^{N}L_i \]\newline
+
+\subsection{Method 2: Using Conditional GAN}
+GANs are generative models that learn a mapping from random noise vector \textit{z} to an output image \textit{y},\[ G : z \rightarrow y \] However, this paper uses a modification called \textbf{Conditional GAN}. Conditional GANs learn a mapping from observed image \textit{x} and random noise vector \textit{z,} to \textit{y}\[ G: {x,z} \rightarrow y \] The Generator \textit{G} is trained to produce outputs that cannot be distinguished from "real" images by an adversarially trained discriminator,\textit{D}, which is trained to do as well as possible at detecting the generator's "fakes".\newline
+\textbf{Objective function:} The objective funciton consists of 2 terms:
+\[ L_{L1}(G) = \mathbf{E_{x,y,z}}[||y-G(x,z)||_{1}] \]
+With this term, the generator is tasked not only to fool the discriminator but also to be near ground truth output in a L1 sense. So the Generator will try to minimise this term. For \textit{D}, this term is constant.\newline
+The other term is:
+\[ L_{cGAN}(G,D) = \mathbf{E_{y}}[\log D(y)] + \mathbf{E_{x,z}} [\log(1-D(G(x,z))] \]
+
+\hfill This term is the general objective function of a conditional GAN. The Generator tries to minimize this term while the discriminator tries to maximize the term. More details can be found in \cite{six}. 
+
+Combining these 2, the objective function of our model becomes:
+\[G^{*} = arg \underset{G}{min} \underset{D}{max} L_{cGAN}(G,D) + \lambda L_{L1}(G) \]\\
+
+\textbf{Architecture}
+
+The salient feature of the paper was that it showed that the same architecture could be used for any image to image translation problem; which is defined as the problem of translating one possible representation of a scene to another. Fig 0.4 shows the architecture of the paper. Here \textit{G} is the Generator, \textit{D} is the Discriminator, \textit{x} is the image fed into the conditional GAN and \textit{y} is the real image.
+
+
+\pagebreak
+
+\begin{figure}
+\centering
+\begin{minipage}{.4\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{imageCGAN}
+  \captionof{figure}{\small CGAN overview used in paper}
+\end{minipage}%
+\begin{minipage}{.6\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{skipconnections}
+  \captionof{figure}{\small Skip connections are used for the GAN}
+  \end{minipage}
+  
+\begin{minipage}{\textwidth}
+    \centering
+    \includegraphics[width=12 cm, height=6 cm]{result}
+    \captionof{figure}{\small Result}
+\end{minipage}
+  
+
+  
+
+\end{figure}
+
+
+Both the Generator and Discriminator use modules of the form convolution-BatchNorm-Relu. For many image translation problems, there is a great deal of low-level information shared between the input and output. eg For the image in Fig 0.4, the edges need to present in both the input and output image. it would be desirable to shuttle this information directly across the network.
+
+So,  \textbf{Skip Connections} are used in Generator. Fig 0.5 shows skip connections architecture. The output from one layer is directly fed into some forward layer. The \textcolor{green}{green} colored lines are skip connections. A U-NET architecture is followed by the GAN i.e the output of layer \textit{i} is fed into layer \textit{n-i}.
+
+
+\section {Discussion}
+Fig 0.6 shows the results of the 2 methods. The leftmost images are the results from method 1, the middle images are the ground truth images, the rightmost images are generated from the second method. \\
+
+No evaluation metric is available for our results. Plausibility to human observer is the ultimate goal. It is clear that the second method outperforms the first one. The reason for this is that the first method used Mean Squared Error as the loss function, which is a form of L2 loss. It was shown however, by \cite{seven} that L2 loss produces blurry results. This can intuitively be understood by considering the case of colorizing a human face. The face of a human being can be black, white or brown. However, when we use L2 loss as objective function, the model will mostly color the face as brown, because brown is the \textit{"average"} color and average value leads to minimization of loss function for L2 Loss. \\
+
+So to prevent this, we can try to design a different loss function. However, it would involve a lot of time and effort. It would be highly desirable if we could instead specify only a high-level goal, like “make the output indistinguishable from reality”, and then automatically learn a loss function appropriate for satisfying this goal. This is why we used method 2. It uses a Generator and Discriminator based architecture. The main advantage of using a Discriminator is that it designs the loss function for us.
+
+%\section{Second section}
+%Body of second section
+
+%\subsection{subsection}
+
+%Body of subsection 
+
+\section{Conclusion}
+
+In this report, we saw 2 methods that try to solve the problem of colorizing black and white photos. The first method used a CNN based architecture. However, it lead to averaging possibilities. 
+
+The second method used a GAN based architecture. We found that the second method outperformed the first method as the Discriminator helped to learn the loss function.
+
+One possible extension where the above approach could be used is to colorize old black and white movies.
+
+
+\begin{thebibliography}{9}
+\bibitem{one} 
+Ryan Dahl. 
+\textit{http://tinyclouds.org/colorize/}. 
+2016
+
+\bibitem{two} 
+Phillip Isola, Jun-Yan Zhu, Tinghui Zhou, Alexei A. Efros.
+\textit{ Image-to-Image Translation with Conditional Adversarial Networks}
+
+\bibitem{three}
+A. A. Efros and W. T. Freeman.
+\textit{ Image quilting for texture synthesis and transfer} 
+
+\bibitem{four}
+T. Chen, M.-M. Cheng, P. Tan, A. Shamir, and S.-M. Hu.
+\textit{Sketch2photo: internet image montage. ACM Transactions on Graphics (TOG)}
+ 28(5):124, 2009
+
+\bibitem{five}
+S. Xie and Z. Tu.
+\textit{Holistically-nested edge detection}
+In ICCV, 2015
+
+\bibitem{six}
+Mehdi Mirza, Simon Osindero
+\textit{Conditional Generative Adversarial Nets}
+2014
+
+\bibitem{seven}
+G Larsson, M Maire, G Shakhnarovich 
+\textit{Learning representations for automatic colorization}
+2016
+\end{thebibliography}
+
+
+\end{document}
+
